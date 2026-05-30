@@ -4,19 +4,19 @@ import os
 from monai.data import CacheDataset, DataLoader
 from monai.transforms import (
     Compose,
-    CropForegroundd,
-    EnsureChannelFirstd,
     LoadImaged,
+    EnsureChannelFirstd,
     Orientationd,
-    RandAdjustContrastd,
-    RandAffined,
-    RandCropByPosNegLabeld,
-    RandFlipd,
-    RandGaussianNoised,
-    RandShiftIntensityd,
-    ScaleIntensityRanged,
     Spacingd,
+    ScaleIntensityRanged,
+    CropForegroundd,
     SpatialPadd,
+    RandCropByPosNegLabeld,
+    RandAffined,
+    RandScaleIntensityd,
+    RandShiftIntensityd,
+    RandGaussianNoised,
+    EnsureTyped,
 )
 
 
@@ -34,83 +34,73 @@ def get_3d_transforms(config):
     train_transforms = Compose(
         [
             LoadImaged(keys=["image", "label"]),
-            EnsureChannelFirstd(
-                keys=["image", "label"]
-            ),  # 把读取的数据变成 (Channel, X, Y, Z) 的格式
+            EnsureChannelFirstd(keys=["image", "label"]),
             Orientationd(
-                keys=["image", "label"], axcodes="RAS"
-            ),  # 强制统一重定向到 RAS（Right, Anterior, Superior）标准解剖学坐标系
-            Spacingd(  # 非常重要！ 把不同切片厚度的 CT 强制插值重采样到统一的物理分辨率
                 keys=["image", "label"],
-                pixdim=spacing,
+                axcodes="RAS",
+            ),
+            Spacingd(
+                keys=["image", "label"],
+                pixdim=config.data.spacing,
                 mode=("bilinear", "nearest"),
             ),
-            ScaleIntensityRanged(  # 窗宽窗位归一化
+            ScaleIntensityRanged(
                 keys=["image"],
-                a_min=a_min,
-                a_max=a_max,
+                a_min=config.data.a_min,
+                a_max=config.data.a_max,
                 b_min=0.0,
                 b_max=1.0,
                 clip=True,
             ),
-            CropForegroundd(  # 裁剪掉 CT 图像周围的全黑背景，减少无效计算
-                keys=["image", "label"], source_key="image"
+            CropForegroundd(
+                keys=["image", "label"],
+                source_key="image",
             ),
             SpatialPadd(
                 keys=["image", "label"],
-                spatial_size=patch_size,
-                mode="constant",
+                spatial_size=config.data.patch_size,
             ),
-            # --- 核心：3D Patch 随机裁剪 ---
             RandCropByPosNegLabeld(
                 keys=["image", "label"],
                 label_key="label",
-                spatial_size=patch_size,
+                spatial_size=config.data.patch_size,
                 pos=1,
                 neg=1,
-                num_samples=num_samples,
+                num_samples=config.data.num_samples,
                 image_key="image",
                 image_threshold=0,
             ),
-            # --- 3D 数据增强 ---
+            # 轻微 3D 几何扰动：模拟体位/FOV/重采样差异
+            # 不做翻转，不打乱解剖方向
             RandAffined(
                 keys=["image", "label"],
+                prob=0.20,
+                rotate_range=(0.035, 0.035, 0.035),
+                scale_range=(0.05, 0.05, 0.05),
+                translate_range=(4, 4, 4),
                 mode=("bilinear", "nearest"),
-                prob=0.5,
-                spatial_size=patch_size,
-                rotate_range=(0.1, 0.1, 0.1),
-                scale_range=(0.1, 0.1, 0.1),
+                padding_mode="border",
             ),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
-            RandGaussianNoised(keys=["image"], prob=0.1, mean=0.0, std=0.1),
-            RandAffined(
-                keys=["image", "label"],
-                mode=("bilinear", "nearest"),
-                prob=0.5,
-                spatial_size=patch_size,
-                rotate_range=(0.1, 0.1, 0.1),
-                scale_range=(0.1, 0.1, 0.1),
+            # 轻微强度缩放：模拟扫描强度差异
+            RandScaleIntensityd(
+                keys=["image"],
+                factors=0.10,
+                prob=0.20,
             ),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-            RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
-            # --- 3D 数据增强 (强度与噪声) ---
-            # 适当调高高斯噪声的触发概率到 0.2
-            RandGaussianNoised(keys=["image"], prob=0.2, mean=0.0, std=0.1),
-            # 随机偏移图像整体亮度，模拟不同CT机的本底差异
+            # 轻微强度偏移：模拟窗宽窗位/成像差异
             RandShiftIntensityd(
                 keys=["image"],
                 offsets=0.10,
-                prob=0.5,
+                prob=0.20,
             ),
-            # 随机 Gamma 对比度变换，增强模型对模糊边界器官的辨识力
-            RandAdjustContrastd(
+            # 轻微噪声：不要太大，避免破坏小器官边界
+            RandGaussianNoised(
                 keys=["image"],
-                prob=0.5,
-                gamma=(0.5, 2.0),
+                prob=0.10,
+                mean=0.0,
+                std=0.01,
             ),
+            EnsureTyped(keys=["image", "label"]),
         ]
     )
 
