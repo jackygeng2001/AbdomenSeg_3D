@@ -161,7 +161,7 @@ def get_3d_dataloaders(config):
     train_ds = CacheDataset(
         data=train_files,
         transform=train_transforms,
-        cache_rate=0.5,
+        cache_rate=0.7,
         num_workers=config.train.num_worker,
     )
 
