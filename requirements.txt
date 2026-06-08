@@ -1,11 +1,14 @@
+# 基础数值计算与进度条
 numpy<2.0.0
 tqdm~=4.67.3
+
+# 配置文件解析
+PyYAML
+
+# 训练日志可视化
 tensorboard
-setuptools
 
-torch
-torchvision
-
+# 医学图像分割与 IO
 monai
 nibabel
 SimpleITK
