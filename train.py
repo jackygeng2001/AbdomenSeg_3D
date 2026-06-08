@@ -128,9 +128,8 @@ def main():
     # 断点续训
     start_epoch = 0
     if config.train.resume_training and os.path.exists(config.paths.checkpoint_path):
-        # 1. 把包裹取回来
         checkpoint = torch.load(config.paths.checkpoint_path, map_location=device)
-        # 2. 依次把记忆注入到对应的身体里
+
         model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
