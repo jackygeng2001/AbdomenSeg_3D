@@ -32,11 +32,28 @@ def main():
     # ==========================================
     # 2. 构建专属的推理数据流
     # ==========================================
-    # 假设要预测的图片放在一个专用的 inference 文件夹，如果没有，暂时回退到 val 文件夹
-    inference_images_dir = getattr(
-        config.paths, "inference_images", config.paths.val_images
-    )
-    image_paths = sorted(glob.glob(os.path.join(inference_images_dir, "*.nii.gz")))
+    # 优先读取 config.yaml 中的 inference_images，如果没有则使用 test_images 的第一个文件
+    inference_images_dir = getattr(config.paths, "inference_images", None)
+    image_paths = []
+    if inference_images_dir:
+        image_paths = sorted(glob.glob(os.path.join(inference_images_dir, "*.nii.gz")))
+        if not image_paths:
+            print(
+                f"[WARN] No images found in inference_images ({inference_images_dir})."
+            )
+
+    if not image_paths:
+        test_images_dir = getattr(config.paths, "test_images", config.paths.val_images)
+        test_image_paths = sorted(glob.glob(os.path.join(test_images_dir, "*.nii.gz")))
+        if not test_image_paths:
+            print(f"[ERROR] No test images found in {test_images_dir}.")
+            sys.exit(1)
+        image_paths = [test_image_paths[0]]
+        print(
+            f"[INFO] No inference_images configured or found."
+            f" Using first test image as fallback: {image_paths[0]}"
+        )
+        inference_images_dir = test_images_dir
 
     # 构建字典，只有 "image" 键，没有 "label" 键
     infer_files = [{"image": img_path} for img_path in image_paths]
@@ -107,11 +124,13 @@ def main():
     # SaveImage 工具：负责把 Tensor 转换为 NIfTI 格式并写入硬盘
     # output_postfix="seg" 会让保存的文件名自动加上后缀，如 original_name_seg.nii.gz
     # separate_folder=False 防止为每个文件单独创建一个同名子文件夹
+    # resample=True 会根据原始元数据（spatial_shape 和 original_affine）恢复到原始图像大小
     saver = SaveImage(
         output_dir=output_dir,
         output_postfix="seg",
         output_ext=".nii.gz",
-        resample=False,  # 保持与当前预处理后相同的分辨率
+        resample=True,
+        mode="nearest",
         separate_folder=False,
         print_log=False,
     )
