@@ -99,6 +99,7 @@ AbdomenSeg_3D/
 | :----------------------------- | :------------------------- | :--- | :--------------------- |
 | **Windows 11**                 | NVIDIA RTX 5060 8G         | CUDA | PyTorch-2.8.0+cu128    |
 | **Linux (Ubuntu 24.04.4 LTS)** | AMD Radeon RX 7900 XTX 24G | ROCm | PyTorch-2.11.0+rocm7.2 |
+
 _在当前配置下，使用 `patch_size=[96, 96, 96]` 并开启 AMP 混合精度训练时，8GB 显存环境可以运行较小 batch size 的训练。不同 GPU、PyTorch 版本和数据预处理设置可能会影响实际显存占用。_
 
 ### 核心依赖项
