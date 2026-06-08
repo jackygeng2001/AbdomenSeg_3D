@@ -34,8 +34,8 @@ train:
   lr: 0.0003
   weight_decay: 1e-5
   scheduler_factor: 0.8
-  scheduler_patience: 3
+  scheduler_patience: 5
   epochs: 600
   val_interval: 5
-  patience: 5
+  patience: 12
   resume_training: false
