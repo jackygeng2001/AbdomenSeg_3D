@@ -88,8 +88,12 @@ def main():
     )
     infer_loader = DataLoader(infer_ds, batch_size=1, shuffle=False)
 
-    # 设置保存预测结果的输出目录
-    output_dir = os.path.join(config.paths.output_root, "predictions")
+    # 设置保存预测标签的输出目录
+    output_dir = getattr(
+        config.paths,
+        "prediction_labels",
+        os.path.join(config.paths.output_root, "predictions"),
+    )
     os.makedirs(output_dir, exist_ok=True)
     print(f"[INFO] Predictions will be saved to: {output_dir}")
 

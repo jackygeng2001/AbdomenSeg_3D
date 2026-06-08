@@ -12,6 +12,7 @@ paths:
   weight_path: "./output/weights/monai_3d_best_model.pth"
   checkpoint_path: "./output/weights/monai_3d_latest.pth"
   log_dir: "./output/logs"
+  prediction_labels: "./output/predictions"
   test_images: "./data/test/images"
   test_labels: "./data/test/labels"
 
