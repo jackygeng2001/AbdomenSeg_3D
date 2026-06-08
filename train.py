@@ -157,7 +157,7 @@ def main():
     logger.info("============================")
     logger.info("")
     logger.info("\n===== Training Started ====✈\n")
-    logger.info("===========================================================")
+    logger.info("==========================================================")
 
     # ETA 计算函数
     def format_eta(seconds):
@@ -270,16 +270,16 @@ def main():
                 remaining_epochs = max_epochs - epoch - 1
                 eta = avg_epoch_time * remaining_epochs
                 logger.info(
-                    "-----------------------------------------------------------"
+                    "----------------------------------------------------------"
                 )
                 logger.info(
                     f"[Epoch {epoch + 1:03d}/{max_epochs:03d}] | Train Loss: {epoch_train_avg_loss:.4f}  |   Time    : {int(epoch_time // 60)}m {int(epoch_time % 60):02d}s"
                 )
                 logger.info(
-                    f"   Lr : {current_lr:8f} |  Val Loss : {val_avg_loss:.4f}  | Val Dice  : {val_avg_dice:.4f}"
+                    f"  Lr : {current_lr:8f} |  Val Loss : {val_avg_loss:.4f}  | Val Dice  : {val_avg_dice:.4f}"
                 )
                 logger.info(
-                    "==========================================================="
+                    "=========================================================="
                 )
 
                 # 早停与保存最佳权重
@@ -294,7 +294,7 @@ def main():
                     )
                     logger.info("")
                     logger.info(
-                        "==========================================================="
+                        "=========================================================="
                     )
                 else:
                     counter += 1
@@ -303,7 +303,7 @@ def main():
                     )
                     logger.info("")
                     logger.info(
-                        "==========================================================="
+                        "=========================================================="
                     )
 
                     if counter >= config.train.patience:
@@ -314,7 +314,7 @@ def main():
                             f"       Final best Val Dice: {best_val_dice:.4f} | Time: {int(total_time // 60)}m {int(total_time % 60):02d}s"
                         )
                         logger.info(
-                            "==========================================================="
+                            "=========================================================="
                         )
                         break
         else:
