@@ -4,19 +4,19 @@ import os
 from monai.data import CacheDataset, DataLoader
 from monai.transforms import (
     Compose,
-    LoadImaged,
-    EnsureChannelFirstd,
-    Orientationd,
-    Spacingd,
-    ScaleIntensityRanged,
     CropForegroundd,
-    SpatialPadd,
-    RandCropByPosNegLabeld,
+    EnsureChannelFirstd,
+    EnsureTyped,
+    LoadImaged,
+    Orientationd,
     RandAffined,
+    RandCropByPosNegLabeld,
+    RandGaussianNoised,
     RandScaleIntensityd,
     RandShiftIntensityd,
-    RandGaussianNoised,
-    EnsureTyped,
+    ScaleIntensityRanged,
+    Spacingd,
+    SpatialPadd,
 )
 
 
@@ -24,11 +24,10 @@ def get_3d_transforms(config):
     """
     定义 3D 图像的预处理与数据增强流水线
     """
-    patch_size = tuple(config.data.patch_size)
+
     spacing = tuple(config.data.spacing)
     a_min = config.data.a_min
     a_max = config.data.a_max
-    num_samples = config.data.num_samples
 
     # --- 训练集专属 Pipeline ---
     train_transforms = Compose(
